@@ -1,0 +1,347 @@
+// Support & Incident Intelligence Platform: data model.
+// The Ticket is the central entity; chat, ML feedback and incidents all hang off it.
+// Vector columns use pgvector and are read/written through the repositories via raw SQL.
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  AGENT
+  ADMIN
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_FOR_USER
+  RESOLVED
+  CLOSED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum Category {
+  ACCOUNT
+  BILLING
+  TECHNICAL
+  FEATURE_REQUEST
+  GENERAL
+}
+
+enum Sentiment {
+  POSITIVE
+  NEUTRAL
+  NEGATIVE
+}
+
+enum TriageStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum ReviewStatus {
+  NOT_REQUIRED
+  PENDING
+  ACCEPTED
+  CORRECTED
+}
+
+enum TicketSource {
+  WEB
+  CHATBOT
+}
+
+enum ActivityType {
+  CREATED
+  TRIAGED
+  STATUS_CHANGED
+  PRIORITY_CHANGED
+  ASSIGNED
+  COMMENTED
+  REVIEWED
+  ESCALATED_FROM_CHAT
+  INCIDENT_LINKED
+}
+
+enum DocumentStatus {
+  PENDING
+  PROCESSING
+  READY
+  FAILED
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+}
+
+enum MessageFeedbackVote {
+  HELPFUL
+  NOT_HELPFUL
+}
+
+enum MessageFeedbackReason {
+  INCORRECT
+  NOT_RELEVANT
+  MISSING_INFORMATION
+  OTHER
+}
+
+enum IncidentStatus {
+  OPEN
+  INVESTIGATING
+  RESOLVED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         Role     @default(USER)
+  isActive     Boolean  @default(true)
+  teamId       String?
+  // Secure, expiring, single-use password-reset token (SHA-256 hash only).
+  passwordResetTokenHash String?
+  passwordResetExpiresAt DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  team             Team?            @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  createdTickets   Ticket[]         @relation("TicketCreator")
+  assignedTickets  Ticket[]         @relation("TicketAssignee")
+  comments         TicketComment[]
+  activities       TicketActivity[]
+  feedback         TicketFeedback[]
+  conversations    Conversation[]
+  uploadedDocuments Document[]
+  answerFeedback   Message[]        @relation("MessageFeedback")
+
+  @@index([role])
+  @@index([teamId])
+}
+
+model Team {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+  // The ML-predicted category this team handles; drives automatic routing.
+  category    Category? @unique
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  members User[]
+  tickets Ticket[]
+}
+
+model Ticket {
+  id              String       @id @default(cuid())
+  number          Int          @unique @default(autoincrement())
+  title           String
+  description     String
+  status          TicketStatus @default(OPEN)
+  priority        Priority     @default(MEDIUM)
+  category        Category?
+  sentiment       Sentiment?
+  sentimentScore  Float?
+  mlConfidence    Float?
+  // Raw ML output + rule trace, kept for explainability and audit.
+  aiAnalysis      Json?
+  triageStatus    TriageStatus @default(PENDING)
+  reviewStatus    ReviewStatus @default(NOT_REQUIRED)
+  source          TicketSource @default(WEB)
+  embedding       Unsupported("vector(384)")?
+  resolution      String?
+  dueAt           DateTime?
+  resolvedAt      DateTime?
+  createdById     String
+  assignedTeamId  String?
+  assignedAgentId String?
+  incidentId      String?
+  conversationId  String?      @unique
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  createdBy     User             @relation("TicketCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  assignedTeam  Team?            @relation(fields: [assignedTeamId], references: [id], onDelete: SetNull)
+  assignedAgent User?            @relation("TicketAssignee", fields: [assignedAgentId], references: [id], onDelete: SetNull)
+  incident      Incident?        @relation(fields: [incidentId], references: [id], onDelete: SetNull)
+  conversation  Conversation?    @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  comments      TicketComment[]
+  activities    TicketActivity[]
+  feedback      TicketFeedback[]
+
+  @@index([status])
+  @@index([priority])
+  @@index([category])
+  @@index([reviewStatus])
+  @@index([createdById])
+  @@index([assignedTeamId])
+  @@index([assignedAgentId])
+  @@index([incidentId])
+  @@index([createdAt])
+}
+
+model TicketComment {
+  id         String   @id @default(cuid())
+  ticketId   String
+  authorId   String
+  body       String
+  // Internal notes are visible to agents/admins only.
+  isInternal Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  author User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId, createdAt])
+}
+
+model TicketActivity {
+  id        String       @id @default(cuid())
+  ticketId  String
+  actorId   String?
+  type      ActivityType
+  data      Json?
+  createdAt DateTime     @default(now())
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  actor  User?  @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([ticketId, createdAt])
+}
+
+// Human corrections of ML predictions: the training signal for future retraining.
+model TicketFeedback {
+  id                String    @id @default(cuid())
+  ticketId          String
+  reviewerId        String
+  predictedCategory Category?
+  correctedCategory Category?
+  predictedPriority Priority?
+  correctedPriority Priority?
+  confidence        Float?
+  accepted          Boolean
+  note              String?
+  createdAt         DateTime  @default(now())
+
+  ticket   Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  reviewer User   @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@index([createdAt])
+}
+
+model Document {
+  id           String         @id @default(cuid())
+  title        String
+  fileName     String
+  mimeType     String
+  sizeBytes    Int
+  storagePath  String
+  status       DocumentStatus @default(PENDING)
+  error        String?
+  chunkCount   Int            @default(0)
+  uploadedById String
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  uploadedBy User            @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+  chunks     DocumentChunk[]
+
+  @@index([status])
+}
+
+model DocumentChunk {
+  id         String                      @id @default(cuid())
+  documentId String
+  index      Int
+  content    String
+  tokenCount Int
+  embedding  Unsupported("vector(384)")?
+  /// Generated full-text vector (see migration hybrid_search); never written by the app.
+  search     Unsupported("tsvector")?
+  createdAt  DateTime                    @default(now())
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, index])
+}
+
+model Conversation {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String   @default("New conversation")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages Message[]
+  ticket   Ticket?
+
+  @@index([userId, updatedAt])
+}
+
+model Message {
+  id             String      @id @default(cuid())
+  conversationId String
+  role           MessageRole
+  content        String
+  // Retrieved chunks used to ground the answer (citations).
+  sources        Json?
+  // False when the assistant could not answer from the knowledge base.
+  answerable     Boolean?
+  // Reader feedback on a grounded answer (never on small talk or "no answer" messages).
+  feedbackVote   MessageFeedbackVote?
+  feedbackReason MessageFeedbackReason?
+  feedbackAt     DateTime?
+  feedbackById   String?
+  createdAt      DateTime    @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  feedbackBy   User?        @relation("MessageFeedback", fields: [feedbackById], references: [id], onDelete: SetNull)
+
+  @@index([conversationId, createdAt])
+  @@index([feedbackVote])
+}
+
+model Incident {
+  id          String         @id @default(cuid())
+  number      Int            @unique @default(autoincrement())
+  title       String
+  summary     String
+  category    Category
+  severity    Priority
+  status      IncidentStatus @default(OPEN)
+  // Detection evidence: cluster similarity, spike ratio, window.
+  signals     Json?
+  detectedAt  DateTime       @default(now())
+  resolvedAt  DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  tickets Ticket[]
+
+  @@index([status, category])
+}
+
+// Runtime-tunable configuration (thresholds), editable by admins.
+model SystemSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}

@@ -1,0 +1,28 @@
+# Dependencies & builds
+node_modules/
+.next/
+dist/
+*.tsbuildinfo
+next-env.d.ts
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# Generated
+backend/src/generated/
+backend/uploads/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

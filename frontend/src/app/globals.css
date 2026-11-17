@@ -1,0 +1,229 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --paper: 245 246 248;
+    --surface: 255 255 255;
+    --ink: 23 27 36;
+    --ink-soft: 58 66 80;
+    --ink-muted: 93 102 117;
+    --ink-faint: 138 146 160;
+    --line: 227 230 235;
+    --line-strong: 205 210 218;
+    --pine-50: 236 245 242;
+    --pine-100: 211 233 225;
+    --pine-200: 169 211 196;
+    --pine-500: 42 134 112;
+    --pine-600: 31 111 92;
+    --pine-700: 24 90 75;
+    --pine-800: 18 70 58;
+    --brand: 31 111 92;
+    --brand-hover: 24 90 75;
+    --danger: 166 39 28;
+    --danger-hover: 138 31 22;
+    --overlay: 23 27 36;
+    --critical-bg: 253 236 234;
+    --critical-fg: 166 39 28;
+    --critical-line: 244 197 192;
+    --high-bg: 254 241 230;
+    --high-fg: 168 72 8;
+    --high-line: 247 210 179;
+    --medium-bg: 251 245 225;
+    --medium-fg: 122 92 0;
+    --medium-line: 235 221 168;
+    --low-bg: 238 242 246;
+    --low-fg: 64 86 107;
+    --low-line: 213 222 231;
+    --positive-bg: 233 246 238;
+    --positive-fg: 29 107 63;
+
+    /* Verve: the public-facing design language. Fixed forest/lime accents with
+       adaptive page, surface and text colours so both themes stay readable. */
+    --v-bg: 246 242 231;
+    --v-surface: 255 255 255;
+    --v-soft: 248 245 236;
+    --v-sunken: 241 237 226;
+    --v-ink: 12 27 20;
+    --v-muted: 92 107 97;
+    --v-subtle: 138 150 141;
+    --v-line: 225 220 205;
+    --v-forest: 12 59 46;
+    --v-lime: 203 243 92;
+    --v-on-forest: 246 242 231;
+
+    --chart-axis: #5d6675;
+    --chart-grid: #eef0f3;
+    --chart-label: #3a4250;
+    --chart-cursor: rgba(23, 27, 36, 0.04);
+    --chart-tooltip-bg: #ffffff;
+    --chart-tooltip-border: #e3e6eb;
+    --chart-tooltip-text: #171b24;
+    --chart-created: #1f6f5c;
+    --chart-created-fill: rgba(42, 134, 112, 0.22);
+    --chart-resolved: #40566b;
+    --chart-critical: #a6271c;
+    --chart-high: #c4520a;
+    --chart-medium: #b8900f;
+    --chart-low: #6c8297;
+    --chart-positive: #1d6b3f;
+    --chart-neutral: #8a92a0;
+    color-scheme: light;
+  }
+
+  .dark {
+    --paper: 15 18 24;
+    --surface: 22 26 33;
+    --ink: 232 235 240;
+    --ink-soft: 197 203 213;
+    --ink-muted: 150 159 173;
+    --ink-faint: 116 125 139;
+    --line: 47 53 63;
+    --line-strong: 66 74 86;
+    --pine-50: 18 44 38;
+    --pine-100: 25 63 54;
+    --pine-200: 42 100 85;
+    --pine-500: 63 179 152;
+    --pine-600: 92 195 166;
+    --pine-700: 124 212 187;
+    --pine-800: 167 226 211;
+    --brand: 38 122 103;
+    --brand-hover: 46 143 120;
+    --danger: 178 58 46;
+    --danger-hover: 194 72 58;
+    --overlay: 0 0 0;
+    --critical-bg: 58 25 24;
+    --critical-fg: 240 138 126;
+    --critical-line: 94 43 38;
+    --high-bg: 62 39 20;
+    --high-fg: 240 165 94;
+    --high-line: 95 60 31;
+    --medium-bg: 56 48 22;
+    --medium-fg: 227 197 92;
+    --medium-line: 88 75 32;
+    --low-bg: 34 42 51;
+    --low-fg: 147 168 189;
+    --low-line: 55 66 78;
+    --positive-bg: 21 50 35;
+    --positive-fg: 111 211 148;
+
+    --v-bg: 8 20 15;
+    --v-surface: 16 33 26;
+    --v-soft: 20 40 31;
+    --v-sunken: 14 33 26;
+    --v-ink: 246 242 231;
+    --v-muted: 168 181 171;
+    --v-subtle: 126 143 132;
+    --v-line: 47 70 59;
+    --v-forest: 12 59 46;
+    --v-lime: 203 243 92;
+    --v-on-forest: 246 242 231;
+
+    --chart-axis: #969fad;
+    --chart-grid: #2f353f;
+    --chart-label: #c5cbd5;
+    --chart-cursor: rgba(255, 255, 255, 0.05);
+    --chart-tooltip-bg: #161a21;
+    --chart-tooltip-border: #2f353f;
+    --chart-tooltip-text: #e8ebf0;
+    --chart-created: #5cc3a6;
+    --chart-created-fill: rgba(92, 195, 166, 0.22);
+    --chart-resolved: #8fa8c4;
+    --chart-critical: #f08a7e;
+    --chart-high: #f0a55e;
+    --chart-medium: #e3c55c;
+    --chart-low: #93a8bd;
+    --chart-positive: #6fd394;
+    --chart-neutral: #969fad;
+    color-scheme: dark;
+  }
+
+  html { -webkit-text-size-adjust: 100%; background-color: rgb(var(--paper)); }
+  body { @apply bg-paper text-ink antialiased; font-feature-settings: "ss02"; }
+  ::selection { @apply bg-pine-100 text-ink; }
+  :focus-visible { @apply outline-none ring-2 ring-pine-500 ring-offset-2 ring-offset-paper; }
+  h1, h2, h3 { @apply tracking-tight; }
+
+  /* Authenticated workspace: remap the original semantic tokens to Verve so
+     existing screens adopt the new palette before each one is redesigned. */
+  .verve-app {
+    --paper: var(--v-bg);
+    --surface: var(--v-surface);
+    --ink: var(--v-ink);
+    --ink-soft: 34 58 46;
+    --ink-muted: var(--v-muted);
+    --ink-faint: var(--v-subtle);
+    --line: var(--v-line);
+    --line-strong: 205 199 181;
+    --pine-50: 236 242 230;
+    --pine-100: 216 232 209;
+    --pine-200: 180 212 168;
+    --pine-500: 44 118 92;
+    --pine-600: 12 59 46;
+    --pine-700: 12 59 46;
+    --pine-800: 10 50 39;
+    --brand: 12 59 46;
+    --brand-hover: 10 50 39;
+    --overlay: 12 27 20;
+    --chart-axis: #5c6b61;
+    --chart-grid: #e9e4d6;
+    --chart-label: #2c3a32;
+    --chart-cursor: rgba(12, 59, 46, 0.05);
+    --chart-tooltip-bg: #ffffff;
+    --chart-tooltip-border: #e1dccd;
+    --chart-tooltip-text: #0c1b14;
+    --chart-created: #0c3b2e;
+    --chart-created-fill: rgba(12, 59, 46, 0.14);
+    --chart-resolved: #8a968d;
+    --chart-neutral: #8a968d;
+    color-scheme: light;
+  }
+
+  .dark .verve-app {
+    --paper: var(--v-bg);
+    --surface: var(--v-surface);
+    --ink: var(--v-ink);
+    --ink-soft: 220 228 221;
+    --ink-muted: var(--v-muted);
+    --ink-faint: var(--v-subtle);
+    --line: var(--v-line);
+    --line-strong: 66 90 76;
+    --pine-50: 20 40 31;
+    --pine-100: 28 54 41;
+    --pine-200: 43 78 59;
+    --pine-500: 168 214 118;
+    --pine-600: 203 243 92;
+    --pine-700: 203 243 92;
+    --pine-800: 203 243 92;
+    --brand: 203 243 92;
+    --brand-hover: 189 235 69;
+    --overlay: 0 0 0;
+    --chart-axis: #a8b5ab;
+    --chart-grid: #2f463b;
+    --chart-label: #dce4dd;
+    --chart-cursor: rgba(246, 242, 231, 0.05);
+    --chart-tooltip-bg: #10211a;
+    --chart-tooltip-border: #2f463b;
+    --chart-tooltip-text: #f6f2e7;
+    --chart-created: #cbf35c;
+    --chart-created-fill: rgba(203, 243, 92, 0.16);
+    --chart-resolved: #8a968d;
+    --chart-neutral: #8a968d;
+    color-scheme: dark;
+  }
+}
+
+@layer components {
+  .card { @apply rounded-2xl border border-verve-line bg-verve-surface shadow-[0_1px_0_rgba(12,59,46,0.04)]; }
+  .field-input {
+    @apply w-full rounded-xl border border-line-strong bg-surface px-3.5 py-2.5 text-[13px] text-ink placeholder:text-ink-faint
+      transition-colors hover:border-ink-faint focus-visible:border-pine-600 focus-visible:ring-2 focus-visible:ring-pine-100 focus-visible:ring-offset-0
+      disabled:cursor-not-allowed disabled:bg-paper aria-[invalid=true]:border-critical-fg;
+  }
+  .prose-chat p + p { @apply mt-2; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

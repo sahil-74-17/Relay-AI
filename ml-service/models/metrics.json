@@ -1,0 +1,25 @@
+{
+  "version": "20261006170521",
+  "samples": 4000,
+  "category": {
+    "accuracy": 0.7474,
+    "macro_f1": 0.6779,
+    "per_class_f1": {
+      "ACCOUNT": 0.8462,
+      "BILLING": 0.3593,
+      "FEATURE_REQUEST": 0.8806,
+      "GENERAL": 0.6,
+      "TECHNICAL": 0.7036
+    }
+  },
+  "priority": {
+    "accuracy": 0.9203,
+    "macro_f1": 0.9068,
+    "per_class_f1": {
+      "CRITICAL": 0.8519,
+      "HIGH": 0.9213,
+      "LOW": 0.9177,
+      "MEDIUM": 0.9363
+    }
+  }
+}
